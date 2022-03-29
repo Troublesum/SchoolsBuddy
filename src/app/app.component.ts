@@ -33,10 +33,5 @@ export class AppComponent {
     this.service.sortColumn = column;
     this.service.sortDirection = direction;
   }
-  resetBalance(){
-  //   this.allUsers$.forEach( (user) => {
-  //   //  user.balance = "0";
-  // });
-  }
 }
 

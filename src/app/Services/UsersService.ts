@@ -4,7 +4,6 @@ import { SortColumn, SortDirection } from '../directives/sortableDirective';
 import { User } from '../Models/user';
 import  USERS  from '../data/users.json';
 import { DecimalPipe } from '@angular/common';
-import { Console } from 'console';
 
 interface SearchResult {
     users: User[];
@@ -30,14 +29,14 @@ function sort(user: User[], column: SortColumn, direction: string): User[] {
   }
 }
 
-function matches(user: User, term: string, pipe: PipeTransform) {
+function matches(user: User, term: string) {
   return user.name.toLowerCase().includes(term.toLowerCase())
 }
 
 @Injectable({providedIn: 'root'})
 export class UserService
 {
-    private _user$ = new BehaviorSubject<User[]>([]);
+    private _users$ = new BehaviorSubject<User[]>([]);
     private _loading$ = new BehaviorSubject<boolean>(true);
     private _search$ = new Subject<void>();
     private _total$ = new BehaviorSubject<number>(0);
@@ -56,19 +55,22 @@ export class UserService
           delay(200),
           tap(() => this._loading$.next(false))
         ).subscribe(result => {
-          this._user$.next(result.users);
+          this._users$.next(result.users);
           this._total$.next(result.total);
         });
         this._search$.next();
 
     }
-
   
+    // reset balance for cashed users
     public resetBalances() {
-      
+      var users = USERS as User[];
+      users.forEach(user => {
+        user.balance = "0";
+      })
     }
 
-    get users$() { return this._user$.asObservable(); }
+    get users$() { return this._users$.asObservable(); }
     get searchTerm() { return this._state.searchTerm; }
     get loading$() { return this._loading$.asObservable(); }
 
@@ -89,7 +91,7 @@ export class UserService
         let users = sort(USERS, sortColumn, sortDirection);
     
         // 2. filter
-        users = users.filter(users => matches(users, searchTerm, this.pipe));
+        users = users.filter(users => matches(users, searchTerm));
         const total = users.length;
     
         return of({users, total});
